@@ -1,34 +1,32 @@
-const express = require ('express');
-const http = require('http');
-const socketio = require('socket.io');
+const express = require('express');
 const mongoose = require('mongoose');
-const config = require('config');
-const morgan = require('morgan');
-const dotenv = require('dotenv');
+const bodyParser = require('body-parser');
+const cors = require('cors');
 
-//init app
+// Import routes
+const userRoutes = require('./src/api/routes/userRoutes');
+const accountRoutes = require('./src/api/routes/accountRoutes');
+const transactionRoutes = require('./src/api/routes/transactionRoutes');
+
 const app = express();
 
-//Bodyparse middleware
-app.use(express.json());
+// Middleware
+app.use(cors());
+app.use(bodyParser.json());
 
-//Load env vars
-//dotenv.config({path: "./config.env"});
+// Database Connection
+const dbConfig = require('./src/config/dbConfig');
+mongoose.connect(dbConfig.url, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('MongoDB connected…'))
+  .catch(err => console.log(err));
 
-//const io = socketio(server).sockets;
+// Use Routes
+app.use('/api/users', userRoutes);
+app.use('/api/accounts', accountRoutes);
+app.use('/api/transactions', transactionRoutes);
 
-//DB config
-//const db = config.get('mongoURI');
-
-const hostname = '127.0.0.1';
-const port = process.env.PORT || 5000;
-
-const server = http.createServer((req, res) => {
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'text/plain');
-  res.end('Hello World');
-});
- 
-server.listen(port, hostname, () => {
-  console.log(`Server running at http://${hostname}:${port}/`);
+// Start the Server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
